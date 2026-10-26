@@ -68,7 +68,7 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
     if (res.status === 401 && typeof window !== "undefined") {
       clearSession();
       if (!window.location.pathname.startsWith("/login")) {
-        window.location.href = "/login";
+        window.location.assign(new URL("/login", window.location.origin));
       }
     }
     throw new ApiError(

@@ -20,28 +20,29 @@ import {
   Spinner,
   inputCls,
 } from "@/components/ui";
+import { LocationPicker, type PickedLocation } from "@/components/LocationPicker";
 
 type Address = {
   id: string;
   label: string;
   address: string;
   city: string;
+  lat?: number | null;
+  lon?: number | null;
   isDefault: boolean;
 };
 
 type Draft = {
   id?: string;
   label: string;
-  address: string;
-  city: string;
   isDefault: boolean;
+  place: PickedLocation;
 };
 
 const blank = (city: string): Draft => ({
   label: "",
-  address: "",
-  city,
   isDefault: false,
+  place: { address: "", lat: null, lon: null, city },
 });
 
 export default function LocationsPage() {
@@ -75,7 +76,20 @@ export default function LocationsPage() {
     try {
       await apiRequest(
         draft.id ? `/partner/locations/${draft.id}` : "/partner/locations",
-        { method: draft.id ? "PATCH" : "POST", body: JSON.stringify(draft) }
+        {
+          method: draft.id ? "PATCH" : "POST",
+          body: JSON.stringify({
+            id: draft.id,
+            label: draft.label,
+            isDefault: draft.isDefault,
+            address: draft.place.address,
+            city: draft.place.city,
+            // The pin is the point of saving a location: it is what lets a
+            // captain who reaches this shop skip the pickup code.
+            lat: draft.place.lat,
+            lon: draft.place.lon,
+          }),
+        }
       );
       setDraft(null);
       await load();
@@ -133,21 +147,20 @@ export default function LocationsPage() {
               />
             </Field>
 
-            <Field label="Address">
-              <textarea
-                value={draft.address}
-                onChange={(e) => setDraft({ ...draft, address: e.target.value })}
-                rows={2}
-                placeholder="Shop number, street, landmark"
-                className={inputCls}
-                required
-              />
-            </Field>
+            <LocationPicker
+              label="Location"
+              hint="Search for the shop, then drag the pin onto the door."
+              value={draft.place}
+              fallbackCity={partner?.city}
+              onChange={(place) => setDraft({ ...draft, place })}
+            />
 
             <Field label="City" hint="The rate card for this city prices the order.">
               <input
-                value={draft.city}
-                onChange={(e) => setDraft({ ...draft, city: e.target.value })}
+                value={draft.place.city}
+                onChange={(e) =>
+                  setDraft({ ...draft, place: { ...draft.place, city: e.target.value } })
+                }
                 placeholder="Ratlam"
                 className={inputCls}
                 required
@@ -199,6 +212,12 @@ export default function LocationsPage() {
                   </div>
                   <p className="mt-0.5 text-sm text-muted">{a.address}</p>
                   <p className="text-xs text-faint">{a.city}</p>
+                  {a.lat == null || a.lon == null ? (
+                    <p className="mt-1 text-xs font-medium text-warn">
+                      No map pin — captains will always be asked for a pickup
+                      code here. Edit to add one.
+                    </p>
+                  ) : null}
                 </div>
                 <div className="flex shrink-0 flex-col gap-1.5">
                   <Button
@@ -208,9 +227,13 @@ export default function LocationsPage() {
                       setDraft({
                         id: a.id,
                         label: a.label,
-                        address: a.address,
-                        city: a.city,
                         isDefault: a.isDefault,
+                        place: {
+                          address: a.address,
+                          lat: a.lat ?? null,
+                          lon: a.lon ?? null,
+                          city: a.city,
+                        },
                       })
                     }
                   >

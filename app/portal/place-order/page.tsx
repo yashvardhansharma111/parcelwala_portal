@@ -21,7 +21,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { apiRequest, getStoredPartner, inr } from "@/lib/api";
 import {
   Button,
@@ -31,6 +31,7 @@ import {
   SectionTitle,
   inputCls,
 } from "@/components/ui";
+import { LocationPicker, type PickedLocation } from "@/components/LocationPicker";
 
 type SavedAddress = {
   id: string;
@@ -66,10 +67,19 @@ export default function PlaceOrderPage() {
 
   const [saved, setSaved] = useState<SavedAddress[]>([]);
   const [pickupId, setPickupId] = useState<string>(NEW_PICKUP);
-  const [pickupAddress, setPickupAddress] = useState("");
-  const [pickupCity, setPickupCity] = useState(partner?.city ?? "");
+  const [pickup, setPickup] = useState<PickedLocation>({
+    address: "",
+    lat: null,
+    lon: null,
+    city: partner?.city ?? "",
+  });
+  const [drop, setDrop] = useState<PickedLocation>({
+    address: "",
+    lat: null,
+    lon: null,
+    city: partner?.city ?? "",
+  });
 
-  const [dropAddress, setDropAddress] = useState("");
   const [dropName, setDropName] = useState("");
   const [dropPhone, setDropPhone] = useState("");
 
@@ -98,8 +108,12 @@ export default function PlaceOrderPage() {
         const def = addresses.find((a) => a.isDefault) ?? addresses[0];
         if (def) {
           setPickupId(def.id);
-          setPickupAddress(def.address);
-          setPickupCity(def.city);
+          setPickup({
+            address: def.address,
+            lat: def.lat ?? null,
+            lon: def.lon ?? null,
+            city: def.city,
+          });
         }
       })
       .catch(() => {
@@ -110,28 +124,36 @@ export default function PlaceOrderPage() {
   const choosePickup = (id: string) => {
     setPickupId(id);
     if (id === NEW_PICKUP) {
-      setPickupAddress("");
-      setPickupCity(partner?.city ?? "");
-    } else {
-      const a = saved.find((x) => x.id === id);
-      if (a) {
-        setPickupAddress(a.address);
-        setPickupCity(a.city);
-      }
+      setPickup({ address: "", lat: null, lon: null, city: partner?.city ?? "" });
+      return;
+    }
+    const a = saved.find((x) => x.id === id);
+    // A saved location carries its own pin, which is the whole reason saving one
+    // is worth doing: the shop placed it once and every order inherits it.
+    if (a) {
+      setPickup({
+        address: a.address,
+        lat: a.lat ?? null,
+        lon: a.lon ?? null,
+        city: a.city,
+      });
     }
   };
-
-  const pickupPoint = useMemo(
-    () => saved.find((a) => a.id === pickupId) ?? null,
-    [saved, pickupId]
-  );
 
   // ── distance ──────────────────────────────────────────────────────────────
 
   // A measurement belongs to the pair of addresses it was taken for. Changing
   // either one throws it away rather than quietly repricing the new route at
   // the old distance.
-  const addressKey = `${pickupAddress}|${pickupCity}|${dropAddress}`;
+  const addressKey = [
+    pickup.address,
+    pickup.city,
+    pickup.lat,
+    pickup.lon,
+    drop.address,
+    drop.lat,
+    drop.lon,
+  ].join("|");
   useEffect(() => {
     setMeasured(null);
     setManualKm("");
@@ -147,8 +169,16 @@ export default function PlaceOrderPage() {
     setMapsFailed(null);
     setMeasuring(true);
     try {
-      const origin = [pickupAddress, pickupCity].filter(Boolean).join(", ");
-      const destination = [dropAddress, pickupCity].filter(Boolean).join(", ");
+      // Pins first. Coordinates are unambiguous; a typed address is whatever
+      // Google decides it meant, which is how a 4 km run gets measured as 34.
+      const origin =
+        pickup.lat != null && pickup.lon != null
+          ? `${pickup.lat},${pickup.lon}`
+          : [pickup.address, pickup.city].filter(Boolean).join(", ");
+      const destination =
+        drop.lat != null && drop.lon != null
+          ? `${drop.lat},${drop.lon}`
+          : [drop.address, drop.city || pickup.city].filter(Boolean).join(", ");
       const res = await apiRequest<DistanceResult>("/partner/distance", {
         method: "POST",
         body: JSON.stringify({ origin, destination }),
@@ -177,7 +207,7 @@ export default function PlaceOrderPage() {
       setQuote(
         await apiRequest<Quote>("/partner/orders/quote", {
           method: "POST",
-          body: JSON.stringify({ distanceKm, orderType, city: pickupCity }),
+          body: JSON.stringify({ distanceKm, orderType, city: pickup.city }),
         })
       );
     } catch (e) {
@@ -186,7 +216,7 @@ export default function PlaceOrderPage() {
     } finally {
       setQuoting(false);
     }
-  }, [distanceKm, orderType, pickupCity]);
+  }, [distanceKm, orderType, pickup.city]);
 
   // Repriced whenever the distance or the type changes, so the figure on screen
   // is never for a different order than the one in the form.
@@ -199,9 +229,9 @@ export default function PlaceOrderPage() {
 
   const phoneDigits = dropPhone.replace(/\D/g, "");
   const ready =
-    pickupAddress.trim().length > 3 &&
-    pickupCity.trim().length > 1 &&
-    dropAddress.trim().length > 3 &&
+    pickup.address.trim().length > 3 &&
+    pickup.city.trim().length > 1 &&
+    drop.address.trim().length > 3 &&
     dropName.trim().length > 1 &&
     phoneDigits.length === 10 &&
     distanceKm > 0 &&
@@ -219,15 +249,18 @@ export default function PlaceOrderPage() {
           method: "POST",
           body: JSON.stringify({
             pickup: {
-              address: pickupAddress.trim(),
-              city: pickupCity.trim(),
-              lat: pickupPoint?.lat ?? null,
-              lon: pickupPoint?.lon ?? null,
+              address: pickup.address.trim(),
+              city: pickup.city.trim(),
+              lat: pickup.lat,
+              lon: pickup.lon,
             },
             drop: {
-              address: dropAddress.trim(),
+              address: drop.address.trim(),
+              city: (drop.city || pickup.city).trim(),
               name: dropName.trim(),
               phone: phoneDigits,
+              lat: drop.lat,
+              lon: drop.lon,
             },
             distanceKm,
             distanceFromMaps: fromMaps,
@@ -299,26 +332,23 @@ export default function PlaceOrderPage() {
             </div>
           ) : null}
 
-          <Field label="Pickup address">
-            <textarea
-              value={pickupAddress}
-              onChange={(e) => {
-                setPickupAddress(e.target.value);
-                setPickupId(NEW_PICKUP);
-              }}
-              rows={2}
-              placeholder="Shop name, street, landmark"
-              className={inputCls}
-            />
-          </Field>
+          <LocationPicker
+            label="Pickup"
+            hint="Pick the shop from the map so the pin is right."
+            value={pickup}
+            fallbackCity={partner?.city}
+            onChange={(v) => {
+              setPickup(v);
+              // Edited by hand, so it is no longer the saved location it came
+              // from — the chip must not stay lit on something that changed.
+              setPickupId(NEW_PICKUP);
+            }}
+          />
 
-          <Field
-            label="City"
-            hint="The rate card for this city sets the price."
-          >
+          <Field label="City" hint="The rate card for this city sets the price.">
             <input
-              value={pickupCity}
-              onChange={(e) => setPickupCity(e.target.value)}
+              value={pickup.city}
+              onChange={(e) => setPickup({ ...pickup, city: e.target.value })}
               placeholder="Ratlam"
               className={inputCls}
             />
@@ -330,15 +360,13 @@ export default function PlaceOrderPage() {
       <Card>
         <SectionTitle>Deliver to</SectionTitle>
         <div className="space-y-3">
-          <Field label="Drop address">
-            <textarea
-              value={dropAddress}
-              onChange={(e) => setDropAddress(e.target.value)}
-              rows={2}
-              placeholder="House / flat, street, landmark"
-              className={inputCls}
-            />
-          </Field>
+          <LocationPicker
+            label="Drop"
+            hint="Search for your customer's address to pin it."
+            value={drop}
+            fallbackCity={pickup.city || partner?.city}
+            onChange={setDrop}
+          />
 
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Receiver's name">
@@ -379,7 +407,7 @@ export default function PlaceOrderPage() {
           variant="ghost"
           onClick={measure}
           disabled={
-            measuring || pickupAddress.trim().length < 4 || dropAddress.trim().length < 4
+            measuring || pickup.address.trim().length < 4 || drop.address.trim().length < 4
           }
           className="w-full"
         >

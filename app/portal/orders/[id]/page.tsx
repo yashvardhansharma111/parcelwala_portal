@@ -36,6 +36,12 @@ type Order = {
   codStage?: string | null;
   riderName?: string | null;
   riderPhone?: string | null;
+  riderPhase?: string | null;
+  pickupOtp?: string | null;
+  pickupOtpRequired?: boolean | null;
+  pickupOtpVerified?: boolean;
+  arrivedDistanceM?: number | null;
+  dropOtp?: string | null;
   cancellationReason?: string | null;
   timeline?: TimelineEntry[];
   createdAt: string | null;
@@ -154,6 +160,21 @@ export default function OrderDetailPage() {
           </p>
         ) : null}
       </Card>
+
+      <PickupOtp order={order} />
+
+      {order.dropOtp ? (
+        <Card className="border-info/30 bg-info-soft/40">
+          <SectionTitle>Delivery code</SectionTitle>
+          <p className="text-sm text-ink">
+            The captain is at the drop. Your customer was sent this code by SMS —
+            if they did not get it, you can read it to them.
+          </p>
+          <p className="tnum mt-2 text-3xl font-black tracking-[0.3em] text-info">
+            {order.dropOtp}
+          </p>
+        </Card>
+      ) : null}
 
       {order.riderName ? (
         <Card>
@@ -291,6 +312,56 @@ export default function OrderDetailPage() {
         </p>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * The pickup code, and whether it will be asked for.
+ *
+ * A captain standing at the shop does not need a code — the server can already
+ * see they are there — so the card says so instead of making someone read out
+ * four digits for nothing. It only becomes an instruction once the captain marks
+ * Arrived from further away, and it disappears once the parcel is collected.
+ */
+function PickupOtp({ order }: { order: Order }) {
+  if (!order.pickupOtp) return null;
+  if (order.pickupOtpVerified) return null;
+  if (!["Created"].includes(order.status)) return null;
+
+  const required = order.pickupOtpRequired;
+  const arrived = order.riderPhase === "arrived_pickup";
+
+  // Waived: the captain marked Arrived from inside the pickup radius.
+  if (required === false) {
+    return (
+      <Card className="border-ok/30 bg-ok-soft/40">
+        <SectionTitle>Pickup code</SectionTitle>
+        <p className="text-sm font-medium text-ok">
+          Not needed — the captain is at your shop
+          {order.arrivedDistanceM != null ? ` (${order.arrivedDistanceM} m away)` : ""}.
+          Just hand over the parcel.
+        </p>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className={required ? "border-brand/40 bg-brand-soft" : ""}>
+      <SectionTitle>Pickup code</SectionTitle>
+      <p className="tnum text-4xl font-black tracking-[0.3em] text-ink">
+        {order.pickupOtp}
+      </p>
+      <p className="mt-2 text-sm text-muted">
+        {required
+          ? arrived
+            ? "The captain marked Arrived from away from your shop, so they need this code to collect the parcel."
+            : "The captain needs this code to collect the parcel."
+          : "Give this to the captain only if they ask. They will not need it if they reach your shop — we check their location."}
+      </p>
+      <p className="mt-2 text-xs text-faint">
+        Never share it before the captain is in front of you.
+      </p>
+    </Card>
   );
 }
 
