@@ -10,6 +10,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { apiRequest, storeSession, type Partner } from "@/lib/api";
 import { Button, ErrorNote, Field, inputCls } from "@/components/ui";
 
@@ -45,9 +46,13 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm">
         <div className="mb-7 text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand text-2xl font-black text-white">
-            P
-          </div>
+          <Image
+            src="/logo-parcelwalah.png"
+            alt="Parcelwalah"
+            width={56}
+            height={56}
+            className="mx-auto mb-3 rounded-2xl"
+          />
           <h1 className="text-xl font-bold text-ink">Parcelwalah Partners</h1>
           <p className="mt-1 text-sm text-muted">
             Sign in to place and track your deliveries.

@@ -9,6 +9,7 @@
  */
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { apiRequest, clearSession, getStoredPartner, getToken, inr, type Partner } from "@/lib/api";
@@ -70,9 +71,13 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
       <header className="sticky top-0 z-20 border-b border-line bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3">
           <Link href="/portal" className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-sm font-black text-white">
-              P
-            </span>
+            <Image
+              src="/logo-parcelwalah.png"
+              alt="Parcelwalah"
+              width={32}
+              height={32}
+              className="rounded-lg"
+            />
             <span className="hidden text-sm font-bold text-ink sm:block">
               {partner?.name ?? "Partner"}
             </span>
