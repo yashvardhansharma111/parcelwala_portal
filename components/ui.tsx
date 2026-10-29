@@ -1,9 +1,11 @@
 /**
- * The portal's small set of building blocks.
+ * The portal's small set of building blocks, styled to the Parcelwalah public
+ * website system (web.parcelwalah.in): orange gradient pill buttons, 22px
+ * cards, 12px inputs, Plus Jakarta Sans / Space Grotesk.
  *
  * Hand-written rather than pulled from a component library: the portal needs a
  * card, a button, a badge and an empty state, and a kit would add a dependency
- * to maintain and a second design language to reconcile with the admin console.
+ * to maintain and a second design language to reconcile with the website.
  */
 
 import Link from "next/link";
@@ -20,7 +22,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-line bg-white ${padded ? "p-4 sm:p-5" : ""} ${className}`}
+      className={`rounded-card border border-line bg-white shadow-md ${padded ? "p-4 sm:p-5" : ""} ${className}`}
     >
       {children}
     </div>
@@ -51,11 +53,13 @@ export function Button({
   ...rest
 }: ButtonProps) {
   const base =
-    "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition disabled:cursor-not-allowed disabled:opacity-50";
-  const sizes = size === "sm" ? "px-3 py-1.5 text-xs" : "px-4 py-2.5 text-sm";
+    "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50";
+  const sizes = size === "sm" ? "px-3.5 py-1.5 text-xs" : "px-5 py-2.5 text-sm";
   const variants = {
-    primary: "bg-brand text-white hover:bg-brand-dark",
-    ghost: "border border-line bg-white text-ink hover:bg-surface",
+    primary:
+      "bg-gradient-to-br from-brand to-brand-2 text-white shadow-glow hover:-translate-y-0.5 hover:shadow-lg",
+    ghost:
+      "border border-line bg-white text-dark hover:-translate-y-0.5 hover:shadow-md",
     danger: "border border-bad/30 bg-bad-soft text-bad hover:bg-bad/15",
   }[variant];
 
@@ -105,13 +109,13 @@ export function Empty({
   action?: { label: string; href: string };
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-line bg-white px-6 py-12 text-center">
+    <div className="flex flex-col items-center justify-center rounded-card border border-dashed border-line bg-white px-6 py-12 text-center shadow-md">
       <p className="text-sm font-semibold text-ink">{title}</p>
       {hint ? <p className="mt-1 max-w-sm text-sm text-muted">{hint}</p> : null}
       {action ? (
         <Link
           href={action.href}
-          className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
+          className="mt-4 rounded-full bg-gradient-to-br from-brand to-brand-2 px-5 py-2 text-sm font-semibold text-white shadow-glow transition-all hover:-translate-y-0.5 hover:shadow-lg"
         >
           {action.label}
         </Link>
@@ -133,7 +137,7 @@ export function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-semibold text-muted">{label}</span>
+      <span className="mb-1.5 block text-xs font-semibold text-dark">{label}</span>
       {children}
       {error ? (
         <span className="mt-1 block text-xs font-medium text-bad">{error}</span>
@@ -145,7 +149,7 @@ export function Field({
 }
 
 export const inputCls =
-  "w-full rounded-xl border border-line bg-white px-3 py-2.5 text-sm text-ink outline-none transition placeholder:text-faint focus:border-brand focus:ring-2 focus:ring-brand/20";
+  "w-full rounded-input border border-line bg-white px-3.5 py-3 text-sm text-ink outline-none transition placeholder:text-faint focus:border-brand focus:ring-2 focus:ring-brand/20";
 
 export function Spinner({ label }: { label?: string }) {
   return (
@@ -158,7 +162,7 @@ export function Spinner({ label }: { label?: string }) {
 
 export function ErrorNote({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-xl border border-bad/25 bg-bad-soft px-3 py-2.5 text-sm text-bad">
+    <div className="rounded-input border border-bad/25 bg-bad-soft px-3 py-2.5 text-sm text-bad">
       {children}
     </div>
   );

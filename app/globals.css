@@ -1,24 +1,25 @@
 @import "tailwindcss";
 
 /*
- * Partner portal design tokens.
- *
- * Deliberately the same palette as the admin console — orange on slate — so a
- * partner and an operator looking at the same order see one product rather
- * than two. Nothing here is dark-mode aware: partners use this on a shop
- * counter in daylight, and a half-finished dark theme reads worse than none.
+ * Partner portal design tokens — matched to the Parcelwalah public website
+ * (web.parcelwalah.in): orange #ff6a1a, Plus Jakarta Sans body, Space Grotesk
+ * headings, 22px cards, pill buttons. Token NAMES are unchanged from the
+ * previous palette so every existing class name keeps working; only the
+ * values moved to the website's system.
  */
 
 :root {
-  --brand: #f56a22;
-  --brand-dark: #d9551a;
-  --brand-soft: #fff3ec;
+  --brand: #ff6a1a;
+  --brand-2: #ff8a3d;
+  --brand-dark: #e05a10;
+  --brand-soft: #fff4ed;
 
-  --ink: #0f172a;
-  --muted: #64748b;
-  --faint: #94a3b8;
-  --line: #e2e8f0;
-  --surface: #f8fafc;
+  --ink: #0e0e10;
+  --dark: #1d1d1d;
+  --muted: #6b6b73;
+  --faint: #a3a3ab;
+  --line: rgba(20, 20, 30, 0.08);
+  --surface: #fffaf6;
 
   --ok: #15803d;
   --ok-soft: #dcfce7;
@@ -31,10 +32,17 @@
 }
 
 @theme inline {
+  --font-sans: var(--font-plus-jakarta), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-plus-jakarta),
+    ui-sans-serif, system-ui, sans-serif;
+
   --color-brand: var(--brand);
+  --color-brand-2: var(--brand-2);
   --color-brand-dark: var(--brand-dark);
   --color-brand-soft: var(--brand-soft);
   --color-ink: var(--ink);
+  --color-dark: var(--dark);
   --color-muted: var(--muted);
   --color-faint: var(--faint);
   --color-line: var(--line);
@@ -47,13 +55,38 @@
   --color-bad-soft: var(--bad-soft);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
+
+  --radius-card: 22px;
+  --radius-input: 12px;
+
+  --shadow-md: 0 18px 40px -22px rgba(0, 0, 0, 0.22);
+  --shadow-lg:
+    0 30px 60px -20px rgba(255, 106, 26, 0.25),
+    0 20px 40px -25px rgba(0, 0, 0, 0.18);
+  --shadow-glow:
+    0 14px 30px -12px rgba(255, 106, 26, 0.6),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.18);
 }
 
-html,
 body {
-  background: var(--surface);
-  color: var(--ink);
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background:
+    radial-gradient(1200px 600px at 85% -10%, #ffe3d0 0%, transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, #fff4ed 0%, transparent 55%),
+    #ffffff;
   -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+p {
+  line-height: 1.65;
 }
 
 /* Tabular figures everywhere money appears, so columns of rupees line up. */

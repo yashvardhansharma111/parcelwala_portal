@@ -56,7 +56,7 @@ export default function AccountPage() {
 
       <Card>
         <div className="flex items-center gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-lg font-black text-white">
+          <span className="flex h-12 w-12 items-center justify-center rounded-card bg-gradient-to-br from-brand to-brand-2 text-lg font-black text-white">
             {(profile.name || cached?.name || "P").charAt(0).toUpperCase()}
           </span>
           <div className="min-w-0">

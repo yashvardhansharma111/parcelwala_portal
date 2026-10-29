@@ -79,7 +79,7 @@ export default function DashboardPage() {
           </div>
           <Link
             href="/portal/wallet"
-            className="rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-dark"
+            className="rounded-full bg-gradient-to-br from-brand to-brand-2 px-4 py-2.5 text-sm font-semibold text-white shadow-glow transition-all hover:-translate-y-0.5 hover:shadow-lg"
           >
             Top up
           </Link>
