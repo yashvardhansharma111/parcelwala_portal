@@ -68,7 +68,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-20 border-b border-line bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-line bg-white/70 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3">
           <Link href="/portal" className="flex items-center gap-2">
             <Image
@@ -88,10 +88,10 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
               <Link
                 key={item.href}
                 href={item.href}
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
                   isActive(item)
-                    ? "bg-brand-soft text-brand"
-                    : "text-muted hover:bg-surface hover:text-ink"
+                    ? "bg-gradient-to-br from-brand to-brand-2 text-white shadow-glow"
+                    : "text-muted hover:bg-brand-soft hover:text-ink"
                 }`}
               >
                 {item.label}
@@ -101,7 +101,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
           <Link
             href="/portal/wallet"
-            className="ml-auto rounded-xl border border-line px-3 py-1.5 text-right md:ml-0"
+            className="ml-auto rounded-2xl border border-line bg-white/80 px-3 py-1.5 text-right shadow-md md:ml-0"
           >
             <span className="block text-[10px] font-semibold uppercase tracking-wide text-faint">
               Wallet

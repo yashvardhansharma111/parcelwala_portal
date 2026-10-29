@@ -61,7 +61,7 @@ export default function LoginPage() {
 
         <form
           onSubmit={submit}
-          className="space-y-4 rounded-2xl border border-line bg-white p-5"
+          className="space-y-4 rounded-card border border-line bg-white p-6 shadow-lg"
         >
           {error ? <ErrorNote>{error}</ErrorNote> : null}
 
