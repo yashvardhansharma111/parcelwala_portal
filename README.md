@@ -24,7 +24,7 @@ Then create a partner to sign in as:
 ```bash
 # in ../backend — seeds rate cards for Ratlam/Jaora/Ujjain and one test partner
 npx tsx scripts/seed-partner-portal.ts
-# -> test.partner@parcelwalah.in / partner1234
+# -> the seed script prints the test login — never commit or publish credentials
 ```
 
 ## How it fits the rest of the system
