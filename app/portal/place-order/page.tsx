@@ -83,6 +83,12 @@ export default function PlaceOrderPage() {
   const [dropName, setDropName] = useState("");
   const [dropPhone, setDropPhone] = useState("");
 
+  // Who hands the parcel over at pickup. Optional: the partner is the shop, so
+  // this is whoever is at the counter for this order — the captain calls this
+  // number if they cannot find the place.
+  const [pickupName, setPickupName] = useState("");
+  const [pickupPhone, setPickupPhone] = useState("");
+
   const [orderType, setOrderType] = useState<"standard" | "food">("standard");
   const [codAmount, setCodAmount] = useState("");
   const [note, setNote] = useState("");
@@ -228,12 +234,18 @@ export default function PlaceOrderPage() {
   // ── submit ────────────────────────────────────────────────────────────────
 
   const phoneDigits = dropPhone.replace(/\D/g, "");
+  const pickupPhoneDigits = pickupPhone.replace(/\D/g, "");
+  // Empty is fine — the pickup contact is optional — but a half-typed number
+  // is not, so a filled-in number must be a full 10 digits.
+  const pickupPhoneValid =
+    pickupPhoneDigits.length === 0 || pickupPhoneDigits.length === 10;
   const ready =
     pickup.address.trim().length > 3 &&
     pickup.city.trim().length > 1 &&
     drop.address.trim().length > 3 &&
     dropName.trim().length > 1 &&
     phoneDigits.length === 10 &&
+    pickupPhoneValid &&
     distanceKm > 0 &&
     quote?.ok === true &&
     quote.sufficient;
@@ -251,6 +263,10 @@ export default function PlaceOrderPage() {
             pickup: {
               address: pickup.address.trim(),
               city: pickup.city.trim(),
+              // Omitted when blank: JSON drops undefined, so an order without
+              // a pickup contact carries no empty contact fields at all.
+              name: pickupName.trim() || undefined,
+              phone: pickupPhoneDigits || undefined,
               lat: pickup.lat,
               lon: pickup.lon,
             },
@@ -353,6 +369,38 @@ export default function PlaceOrderPage() {
               className={inputCls}
             />
           </Field>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field
+              label="Contact name at pickup"
+              hint="Who hands the parcel to the captain."
+            >
+              <input
+                value={pickupName}
+                onChange={(e) => setPickupName(e.target.value)}
+                placeholder="Shopkeeper or staff name"
+                className={inputCls}
+              />
+            </Field>
+            <Field
+              label="Contact phone at pickup"
+              error={
+                pickupPhone.length > 0 && pickupPhoneDigits.length !== 10
+                  ? "A 10-digit number is needed"
+                  : null
+              }
+              hint="The captain calls this number if they cannot find the shop."
+            >
+              <input
+                value={pickupPhone}
+                onChange={(e) => setPickupPhone(e.target.value)}
+                inputMode="numeric"
+                maxLength={14}
+                placeholder="98765 43210"
+                className={inputCls}
+              />
+            </Field>
+          </div>
         </div>
       </Card>
 
