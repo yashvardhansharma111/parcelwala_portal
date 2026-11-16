@@ -24,6 +24,7 @@ import {
   mapsConfigured,
   placeDetails,
   searchAddress,
+  type SearchBias,
   type Suggestion,
 } from "@/lib/maps";
 import { Field, inputCls } from "@/components/ui";
@@ -42,6 +43,8 @@ export function LocationPicker({
   onChange,
   /** Where to centre the map before anything is picked. */
   fallbackCity,
+  /** Centre the suggestions around this point: nearby places sort first. */
+  near,
   rows = 2,
 }: {
   label: string;
@@ -49,6 +52,7 @@ export function LocationPicker({
   value: PickedLocation;
   onChange: (v: PickedLocation) => void;
   fallbackCity?: string;
+  near?: SearchBias | null;
   rows?: number;
 }) {
   const [query, setQuery] = useState("");
@@ -64,6 +68,11 @@ export function LocationPicker({
 
   // ── search ────────────────────────────────────────────────────────────────
 
+  // Primitives in the effect deps, not the object: a fresh `near` literal
+  // every render must not re-run the search, only a moved centre may.
+  const nearLat = near?.lat ?? null;
+  const nearLon = near?.lon ?? null;
+
   useEffect(() => {
     const q = query.trim();
     if (q.length < 3) {
@@ -73,7 +82,10 @@ export function LocationPicker({
     setSearching(true);
     // Debounced: Places is billed per request, and a keystroke is not a search.
     const t = setTimeout(async () => {
-      const list = await searchAddress(q);
+      const list = await searchAddress(
+        q,
+        nearLat != null && nearLon != null ? { lat: nearLat, lon: nearLon } : undefined
+      );
       setResults(list);
       setOpen(true);
       setSearching(false);
@@ -82,7 +94,7 @@ export function LocationPicker({
       clearTimeout(t);
       setSearching(false);
     };
-  }, [query]);
+  }, [query, nearLat, nearLon]);
 
   const choose = async (s: Suggestion) => {
     setOpen(false);

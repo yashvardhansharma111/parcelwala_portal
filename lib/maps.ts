@@ -85,16 +85,36 @@ export type Place = {
   city?: string;
 };
 
+/** Suggestions are biased to this radius around the centre point. */
+export const SUGGESTION_RADIUS_M = 20_000;
+
+export type SearchBias = { lat: number; lon: number };
+
 /**
  * Address suggestions. Returns an empty list on any failure rather than
  * throwing: a search box that goes quiet is recoverable by typing, and the
  * screen always offers the address field as a plain text input underneath.
+ *
+ * With a centre, nearby places sort first: the backend treats lat/lon as a
+ * bias, so a search for "bus stand" starts with the one in the partner's own
+ * city instead of same-named ones across the country. It is a bias, not a
+ * fence — far places can still appear further down — and the radius travels
+ * along so the backend can honour it as a restriction when it learns to.
  */
-export async function searchAddress(query: string): Promise<Suggestion[]> {
+export async function searchAddress(
+  query: string,
+  near?: SearchBias | null
+): Promise<Suggestion[]> {
   const q = query.trim();
   if (q.length < 3) return [];
   try {
-    const res = await fetch(`${BASE}/map/autocomplete?q=${encodeURIComponent(q)}`, {
+    const params = new URLSearchParams({ q });
+    if (near) {
+      params.set("lat", String(near.lat));
+      params.set("lon", String(near.lon));
+      params.set("radius", String(SUGGESTION_RADIUS_M));
+    }
+    const res = await fetch(`${BASE}/map/autocomplete?${params.toString()}`, {
       cache: "no-store",
     });
     const body = await res.json();

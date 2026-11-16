@@ -127,6 +127,21 @@ export default function PlaceOrderPage() {
       });
   }, []);
 
+  // Suggestion bias: the shop's own pin. Drop searches centre on the
+  // pickup, falling back to the default saved shop; pickup searches centre
+  // on the default shop — so the list starts with places nearby instead of
+  // same-named places across the country. No pin anywhere means no bias,
+  // which is the old behaviour, not an error.
+  const shopPin = saved.find((a) => a.isDefault) ?? saved[0];
+  const shopBias =
+    shopPin?.lat != null && shopPin?.lon != null
+      ? { lat: shopPin.lat, lon: shopPin.lon }
+      : undefined;
+  const dropBias =
+    pickup.lat != null && pickup.lon != null
+      ? { lat: pickup.lat, lon: pickup.lon }
+      : shopBias;
+
   const choosePickup = (id: string) => {
     setPickupId(id);
     if (id === NEW_PICKUP) {
@@ -353,6 +368,7 @@ export default function PlaceOrderPage() {
             hint="Pick the shop from the map so the pin is right."
             value={pickup}
             fallbackCity={partner?.city}
+            near={shopBias}
             onChange={(v) => {
               setPickup(v);
               // Edited by hand, so it is no longer the saved location it came
@@ -413,6 +429,7 @@ export default function PlaceOrderPage() {
             hint="Search for your customer's address to pin it."
             value={drop}
             fallbackCity={pickup.city || partner?.city}
+            near={dropBias}
             onChange={setDrop}
           />
 
