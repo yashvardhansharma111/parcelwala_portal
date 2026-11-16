@@ -115,6 +115,16 @@ export default function LocationsPage() {
   if (error && !list) return <ErrorNote>{error}</ErrorNote>;
   if (!list) return <Spinner label="Loading your locations…" />;
 
+  // Suggestion bias: the draft's own pin when editing, else the default
+  // shop's pin, so adding another shop starts its search nearby.
+  const homePin = list.find((a) => a.isDefault) ?? list[0];
+  const near =
+    draft?.place.lat != null && draft?.place.lon != null
+      ? { lat: draft.place.lat, lon: draft.place.lon }
+      : homePin?.lat != null && homePin?.lon != null
+        ? { lat: homePin.lat, lon: homePin.lon }
+        : undefined;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3">
@@ -152,6 +162,7 @@ export default function LocationsPage() {
               hint="Search for the shop, then drag the pin onto the door."
               value={draft.place}
               fallbackCity={partner?.city}
+              near={near}
               onChange={(place) => setDraft({ ...draft, place })}
             />
 
