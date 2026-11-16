@@ -204,7 +204,7 @@ export default function OrderDetailPage() {
           tone="pickup"
           title="Pick up"
           address={order.pickup?.address}
-          sub={[order.pickup?.name, order.pickup?.city].filter(Boolean).join(" · ")}
+          sub={[order.pickup?.name, order.pickup?.phone, order.pickup?.city].filter(Boolean).join(" · ")}
         />
         <div className="my-1 ml-[7px] h-5 border-l-2 border-dotted border-line" />
         <Leg
