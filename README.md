@@ -99,5 +99,9 @@ The first two leave rows in Firestore; `scripts/clean-test-portal-data.ts
 --apply` removes them and resets the test wallets. The OTP suite cleans up after
 itself.
 
+Run the cleanup **between** suites, not just at the end. The portal suite reads
+the test partner's COD and wallet state as it starts, so leftovers from the
+admin suite make it fail on numbers that are correct.
+
 The operator side of this portal lives in the admin console:
 `/partners`, `/partner-topups` and `/rate-cards`.
